@@ -39,16 +39,16 @@ fun main(args: Array<String>) {
 
     for (prop in props) {
         if (prop.key.toString() == "jasypt.encryptor.password") {
-            prop.setValue(password)
             continue
         }
         for (keyword in arrNode) {
             if (prop.key.toString().contains(keyword.asText(), ignoreCase = true)) {
                 val encrypted = encryptor.encrypt(prop.value.toString())
                 println(" ${prop.key}: ${prop.value} -> $encrypted")
-                prop.setValue(encrypted)
+                prop.setValue("ENC($encrypted)")
             }
         }
     }
+    props.setProperty("jasypt.encryptor.password", password)
     props.store(FileOutputStream(output), null)
 }
