@@ -6,8 +6,6 @@ package helper.jasypt
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import java.io.File
-import java.io.FileOutputStream
-import java.util.*
 
 class App {
     val text: String
@@ -34,7 +32,7 @@ fun main(args: Array<String>) {
     val encryptor = Encryptor().getEncryptor(password)
 
     val props = File(input).bufferedReader().use {
-        Properties().apply { load(it) }
+        CleanProperties().apply { load(it) }
     }
 
     for (prop in props) {
@@ -49,6 +47,7 @@ fun main(args: Array<String>) {
             }
         }
     }
+
     props.setProperty("jasypt.encryptor.password", password)
-    props.store(FileOutputStream(output), null)
+    props.store(File(output).bufferedWriter(), null)
 }

@@ -5,7 +5,7 @@ if [%1]==[]  (
 )
 
 set /p pwd="Encrypt password: "
-java -jar %~dp0app-uber.jar %pwd% "%1"
+java -jar "%~dp0app-uber.jar" "%pwd%" %1
 
 :end
 
