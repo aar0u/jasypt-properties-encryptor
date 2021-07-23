@@ -4,7 +4,7 @@ import org.jasypt.encryption.pbe.PooledPBEStringEncryptor
 import org.jasypt.encryption.pbe.config.SimpleStringPBEConfig
 
 class Encryptor {
-    fun getEncryptor(password: String): PooledPBEStringEncryptor {
+    private fun getEncryptor(password: String): PooledPBEStringEncryptor {
         val encryptor = PooledPBEStringEncryptor()
         val config = SimpleStringPBEConfig()
         config.password = password
@@ -17,5 +17,19 @@ class Encryptor {
         config.stringOutputType = "base64"
         encryptor.setConfig(config)
         return encryptor
+    }
+
+    fun encryptValue(theKey: String, theValue: String, keywords: MutableList<String>, password: String): String {
+        var outputValue = theValue
+        if (theKey != "jasypt.encryptor.password" && !theValue.startsWith("ENC(")) {
+            for (keyword in keywords) {
+                if (theKey.contains(keyword, ignoreCase = true)) {
+                    val encrypted = getEncryptor(password).encrypt(theValue)
+                    println(" $theKey: $theValue -> $encrypted")
+                    outputValue = "ENC($encrypted)"
+                }
+            }
+        }
+        return outputValue
     }
 }

@@ -3,9 +3,9 @@
  */
 package helper.jasypt
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import java.io.File
 
 class App {
     val text: String
@@ -17,37 +17,18 @@ class App {
 fun main(args: Array<String>) {
     val password = args[0]
     val input = args[1]
-    val output = "${input}_enc"
 
     println("${App().text} $input")
 
     val mapper = ObjectMapper(YAMLFactory())
 
-    val value = mapper.readTree(
-        ClassLoader.getSystemResource("config.yaml").readBytes()
-    )
+    val value = mapper.readTree(ClassLoader.getSystemResource("config.yaml").readBytes())
 
-    val arrNode = value.get("keywords")
+    val keywords: MutableList<String> = ArrayList();
 
-    val encryptor = Encryptor().getEncryptor(password)
+    value.withArray<JsonNode>("keywords").elements()
+            .forEachRemaining { keywords.add(it.asText()) }
 
-    val props = File(input).bufferedReader().use {
-        CleanProperties().apply { load(it) }
-    }
-
-    for (prop in props) {
-        if (prop.key.toString() == "jasypt.encryptor.password") {
-            continue
-        }
-        for (keyword in arrNode) {
-            if (prop.key.toString().contains(keyword.asText(), ignoreCase = true)) {
-                val encrypted = encryptor.encrypt(prop.value.toString())
-                println(" ${prop.key}: ${prop.value} -> $encrypted")
-                prop.setValue("ENC($encrypted)")
-            }
-        }
-    }
-
-    props.setProperty("jasypt.encryptor.password", password)
-    props.store(File(output).bufferedWriter(), null)
+    CleanProperties().encrypt(input, keywords, password, "${input}_enc_sorted")
+    FileEncryptor().encrypt(input, keywords, password, "${input}_enc")
 }
